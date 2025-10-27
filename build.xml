@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<project name="MeetingPlanner" basedir="." default="run-tests">
+
+    <!-- Define folder structure -->
+    <property name="src.dir" value="src/main/java"/>
+    <property name="test.dir" value="src/test/java"/>
+    <property name="build.dir" value="build"/>
+    <property name="lib.dir" value="lib"/>
+
+    <!-- Clean previous builds -->
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+    </target>
+
+    <!-- Compile main + test source -->
+    <target name="compile">
+        <mkdir dir="${build.dir}"/>
+        <javac includeantruntime="false" srcdir="${src.dir};${test.dir}" destdir="${build.dir}">
+            <classpath>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- Run JUnit 5 tests -->
+    <target name="run-tests" depends="compile">
+        <java classname="org.junit.platform.console.ConsoleLauncher" fork="true">
+            <classpath>
+                <pathelement path="${build.dir}"/>
+                <fileset dir="${lib.dir}">
+                    <include name="*.jar"/>
+                </fileset>
+            </classpath>
+            <arg value="execute"/>
+            <arg value="--scan-classpath"/>
+        </java>
+    </target>
+
+</project>
