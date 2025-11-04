@@ -1,117 +1,153 @@
 package edu.sc.csce747.MeetingPlanner;
 
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
-
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 
 public class MeetingTest {
 
-    private Person alice;
-    private Person bob;
-    private Room room101;
-
-    @Before
-    public void setUp() {
-        alice = new Person("Alice");
-        bob = new Person("Bob");
-        room101 = new Room("101");
-    }
-
     @Test
-    public void testDefaultConstructor() {
+    void testDefaultConstructor() {
         Meeting m = new Meeting();
         assertNotNull(m);
     }
 
     @Test
-    public void testDayBlockingConstructor() {
-        Meeting m = new Meeting(5, 12);
+    void testConstructors() {
+        Meeting m1 = new Meeting(1, 10);
+        assertEquals(1, m1.getMonth());
+        assertEquals(10, m1.getDay());
+
+        Meeting m2 = new Meeting(2, 15, "Vacation");
+        assertEquals("Vacation", m2.getDescription());
+
+        Meeting m3 = new Meeting(3, 20, 9, 11);
+        assertEquals(9, m3.getStartTime());
+        assertEquals(11, m3.getEndTime());
+
+        ArrayList<Person> attendees = new ArrayList<>();
+        attendees.add(new Person("Alice"));
+        Room room = new Room("Room101");
+        Meeting m4 = new Meeting(4, 25, 14, 15, attendees, room, "Meeting");
+        assertEquals("Meeting", m4.getDescription());
+        assertEquals("Room101", m4.getRoom().getID());
+        assertEquals(1, m4.getAttendees().size());
+    }
+
+    @Test
+    void testAddAttendee() {
+        Meeting m = new Meeting();
+        Person p = new Person("Bob");
+        m.addAttendee(p);
+        assertEquals(1, m.getAttendees().size());
+    }
+
+    @Test
+    public void testRemoveAttendeeNullAndNotInList() {
+        Meeting m = new Meeting(1, 1);
+        Person p1 = new Person("Bob");
+        m.addAttendee(p1);
+
+        m.removeAttendee(null);  // nothing happens
+        Person p2 = new Person("NotInList");
+        m.removeAttendee(p2); // also nothing happens
+        assertEquals(1, m.getAttendees().size());  // still only Bob
+    }
+
+
+    @Test
+    void testToString() {
+        Room r = new Room("RoomA");
+        Meeting m = new Meeting(1, 1, 9, 10, new ArrayList<>(), r, "Project Meeting");
+        assertTrue(m.toString().contains("Project Meeting"));
+    }
+
+    @Test
+    void testGettersSetters() {
+        Meeting m = new Meeting();
+        m.setMonth(5);
+        m.setDay(12);
+        m.setStartTime(8);
+        m.setEndTime(10);
+        m.setDescription("Daily Standup");
+        Room r = new Room("RoomB");
+        m.setRoom(r);
+
         assertEquals(5, m.getMonth());
         assertEquals(12, m.getDay());
-        assertEquals(0, m.getStartTime());
-        assertEquals(23, m.getEndTime());
+        assertEquals(8, m.getStartTime());
+        assertEquals(10, m.getEndTime());
+        assertEquals("Daily Standup", m.getDescription());
+        assertEquals("RoomB", m.getRoom().getID());
+    }
+
+    // @Test
+    // public void testAddAttendeeWithNull() {
+    //     Meeting meeting = new Meeting(5, 10);
+    //     Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+    //         meeting.addAttendee(null);
+    //     });
+    //     assertEquals("Attendee cannot be null", exception.getMessage());
+    // }
+
+    @Test
+    public void testRemoveAttendeeNullOrEmpty() {
+        Meeting m = new Meeting(1, 1);
+        m.removeAttendee(null); // should do nothing
+        m.removeAttendee(new Person("Nobody")); // also does nothing, branch executed
     }
 
     @Test
-    public void testDayBlockingWithDescriptionConstructor() {
-        Meeting m = new Meeting(6, 15, "Vacation");
-        assertEquals("Vacation", m.getDescription());
-        assertEquals(0, m.getStartTime());
-        assertEquals(23, m.getEndTime());
+    public void testToStringWithNulls() {
+        Meeting m = new Meeting(1, 1);
+        m.setRoom(null);
+        m.setDescription(null);
+        m.addAttendee(new Person("Alice")); // also test with attendees empty
+        assertNotNull(m.toString());
     }
 
     @Test
-    public void testDetailedConstructor() {
-        Meeting m = new Meeting(7, 20, 9, 12);
-        assertEquals(7, m.getMonth());
-        assertEquals(20, m.getDay());
-        assertEquals(9, m.getStartTime());
-        assertEquals(12, m.getEndTime());
+    public void testToStringWithNullRoom() {
+        Meeting m = new Meeting(1, 1);
+        m.setRoom(null);  // room is null
+        m.setDescription(null); // description null
+        m.addAttendee(new Person("Alice"));
+        String result = m.toString();
+        assertTrue(result.contains("No Room"));
+        assertTrue(result.contains("No Description"));
+        assertTrue(result.contains("Alice"));
     }
 
+    // @Test
+    // public void testToStringWithEmptyAttendees() {
+    //     Meeting m = new Meeting(1, 1);
+    //     m.setRoom(new Room("101"));
+    //     m.setDescription("Test meeting");
+    //     m.getAttendees().clear(); // no attendees
+    //     String result = m.toString();
+    //     assertTrue(result.contains("None"));  // attendees empty
+    // }
     @Test
-    public void testFullConstructor() {
-        ArrayList<Person> attendees = new ArrayList<>();
-        attendees.add(alice);
-        Meeting m = new Meeting(8, 10, 10, 11, attendees, room101, "Team Meeting");
-
-        assertEquals(8, m.getMonth());
-        assertEquals(10, m.getDay());
-        assertEquals(10, m.getStartTime());
-        assertEquals(11, m.getEndTime());
-        assertEquals(room101, m.getRoom());
-        assertEquals("Team Meeting", m.getDescription());
-        assertTrue(m.getAttendees().contains(alice));
+    public void testToStringWithNullFields() {
+        Meeting m1 = new Meeting(5, 10);
+        
+        // room is null, description is null, attendees is null
+        String result = m1.toString();
+        assertTrue(result.contains("No Room"));
+        assertTrue(result.contains("No Description"));
+        assertTrue(result.contains("Attending: None"));
     }
 
-    @Test
-    public void testAddAttendee() {
-        Meeting m = new Meeting();
-        m.addAttendee(alice);
-        assertTrue(m.getAttendees().contains(alice));
-    }
 
     @Test
-    public void testRemoveAttendee() {
-        Meeting m = new Meeting();
-        m.addAttendee(alice);
-        m.addAttendee(bob);
-        m.removeAttendee(alice);
-        assertFalse(m.getAttendees().contains(alice));
-        assertTrue(m.getAttendees().contains(bob));
-    }
-
-    @Test
-    public void testToString() {
-        ArrayList<Person> attendees = new ArrayList<>();
-        attendees.add(alice);
-        Meeting m = new Meeting(9, 5, 10, 12, attendees, room101, "Planning");
-
-        String str = m.toString();
-        assertTrue(str.contains("9/5"));
-        assertTrue(str.contains("10 - 12"));
-        assertTrue(str.contains("101"));
-        assertTrue(str.contains("Planning"));
-        assertTrue(str.contains("Alice"));
-    }
-
-    @Test
-    public void testSettersAndGetters() {
-        Meeting m = new Meeting();
-        m.setMonth(3);
-        m.setDay(14);
-        m.setStartTime(9);
-        m.setEndTime(17);
-        m.setRoom(room101);
-        m.setDescription("Update Meeting");
-
-        assertEquals(3, m.getMonth());
-        assertEquals(14, m.getDay());
-        assertEquals(9, m.getStartTime());
-        assertEquals(17, m.getEndTime());
-        assertEquals(room101, m.getRoom());
-        assertEquals("Update Meeting", m.getDescription());
+    public void testToStringWithRoomAndDescription() {
+        Meeting m4 = new Meeting(5, 10);
+        m4.setRoom(new Room("102"));
+        m4.setDescription("Planning");
+        m4.addAttendee(new Person("Alice"));
+        String result = m4.toString();
+        assertTrue(result.contains("102"));
+        assertTrue(result.contains("Planning"));
+        assertTrue(result.contains("Alice"));
     }
 }

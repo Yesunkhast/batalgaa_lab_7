@@ -1,11 +1,19 @@
 <?xml version="1.0"?>
-<project name="MeetingPlanner" basedir="." default="run-tests">
+<project name="MeetingPlanner" basedir="." default="run-tests" xmlns:jacoco="antlib:org.jacoco.ant">
 
     <!-- Define folder structure -->
     <property name="src.dir" value="src/main/java"/>
     <property name="test.dir" value="src/test/java"/>
     <property name="build.dir" value="build"/>
     <property name="lib.dir" value="lib"/>
+
+    <!-- Define JaCoCo output file -->
+    <property name="jacoco.exec.file" value="${build.dir}/jacoco.exec"/>
+
+    <!-- Load JaCoCo task -->
+    <taskdef uri="antlib:org.jacoco.ant"
+             resource="org/jacoco/ant/antlib.xml"
+             classpath="${lib.dir}/jacocoant.jar"/>
 
     <!-- Clean previous builds -->
     <target name="clean">
@@ -24,18 +32,42 @@
         </javac>
     </target>
 
-    <!-- Run JUnit 5 tests -->
+    <!-- Run JUnit 5 tests with JaCoCo -->
     <target name="run-tests" depends="compile">
-        <java classname="org.junit.platform.console.ConsoleLauncher" fork="true">
-            <classpath>
-                <pathelement path="${build.dir}"/>
-                <fileset dir="${lib.dir}">
-                    <include name="*.jar"/>
-                </fileset>
-            </classpath>
-            <arg value="execute"/>
-            <arg value="--scan-classpath"/>
-        </java>
+        <jacoco:coverage destfile="${jacoco.exec.file}">
+            <java classname="org.junit.platform.console.ConsoleLauncher" fork="true">
+                <classpath>
+                    <pathelement path="${build.dir}"/>
+                    <fileset dir="${lib.dir}">
+                        <include name="*.jar"/>
+                    </fileset>
+                </classpath>
+                <arg value="execute"/>
+                <arg value="--scan-classpath"/>
+            </java>
+        </jacoco:coverage>
+    </target>
+
+    <!-- Generate HTML report -->
+    <target name="report" depends="run-tests">
+        <jacoco:report>
+            <executiondata>
+                <file file="${jacoco.exec.file}"/>
+            </executiondata>
+            <structure name="MeetingPlanner">
+                <classfiles>
+                    <fileset dir="${build.dir}">
+                        <exclude name="**/PlannerInterface.class"/>
+                        <exclude name="**/TimeConflictException.class/**"/>
+                    </fileset>
+                </classfiles>
+                <sourcefiles>
+                    <fileset dir="${src.dir}"/>
+                </sourcefiles>
+            </structure>
+            <html destdir="${build.dir}/jacoco-report"/>
+        </jacoco:report>
+        <echo>HTML report generated in: ${build.dir}/jacoco-report/index.html</echo>
     </target>
 
 </project>

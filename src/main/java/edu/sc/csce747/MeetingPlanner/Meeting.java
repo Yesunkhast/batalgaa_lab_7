@@ -15,6 +15,13 @@ public class Meeting {
 	 * Default constructor
 	 */
 	public Meeting(){
+		this.month=0;
+		this.day=0;
+		this.start=0;
+		this.end=0;
+		this.attendees = new ArrayList<Person>();
+		this.room = null;
+		this.description = "";
 	}
 	
 	/**
@@ -78,36 +85,42 @@ public class Meeting {
 		this.room = room;
 		this.description = description;
 	}
-
-	/**
-	 * Add an attendee to the meeting.
-	 * @param attendee - The person to add.
-	 */
 	public void addAttendee(Person attendee) {
+		if (attendee == null) {
+			throw new IllegalArgumentException("Attendee cannot be null");
+		}
+		if (this.attendees == null) {
+			this.attendees = new ArrayList<Person>();
+		}
 		this.attendees.add(attendee);
 	}
-	
-	/**
-	 * Removes an attendee from the meeting.
-	 * @param attendee - The person to remove.
-	 */
+
 	public void removeAttendee(Person attendee) {
-		this.attendees.remove(attendee);
+		if (this.attendees != null && attendee != null) {
+			this.attendees.remove(attendee);
+		}
 	}
-	
+
 	/**
 	 * Returns information about the meeting as a formatted string.
 	 * @return String - Information about the meeting.
 	 */
 	public String toString(){
-		String info=month+"/"+day+", "+start+" - "+end+","+room.getID()+": "+description+"\nAttending: ";
-		
-		for(Person attendee : attendees){
-			info=info+attendee.getName()+",";
+		String roomInfo = (room != null) ? room.getID() : "No Room";
+		String descInfo = (description != null) ? description : "No Description";
+
+		String info = month + "/" + day + ", " + start + " - " + end + ","
+				+ roomInfo + ": " + descInfo + "\nAttending: ";
+
+		if (attendees == null || attendees.isEmpty()) {
+			info += "None";
+		} else {
+			for (Person attendee : attendees) {
+				info += attendee.getName() + ",";
+			}
+			info = info.substring(0, info.length() - 1); // remove last comma
 		}
-		
-		info=info.substring(0,info.length()-1);
-		
+
 		return info;
 	}
 	
